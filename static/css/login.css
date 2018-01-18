@@ -1,0 +1,45 @@
+
+.login_welcome {
+  color: #909399;
+  margin-top: -20px;
+}
+
+.login_text {
+  color: #909399;
+}
+.login_box {
+  background: url("../img/login.jpg");
+  background-size: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  width: 100%;
+}
+
+.login_box .input {
+  width: 20%;
+}
+
+.login_box .button {
+  width: 20%;
+}
+
+.login_box .login_button {
+  border: none;
+  background-color: #1ab394;
+}
+
+.login_title {
+  font-family: "";
+  width: 100%;
+  margin-top: 3%;
+  margin-bottom: 1%;
+  text-align: center;
+  color: #e6e6e6;
+  font-size: 180px;
+  font-weight: 800;
+  letter-spacing: -10px;
+}
