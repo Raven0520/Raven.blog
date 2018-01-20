@@ -3,16 +3,16 @@
  */
 export default {
   data () {
-    var name = (rule, value, callback) => {
+    let name = (rule, value, callback) => {
       if (!value) {
-        this.message.topError(this, '用户名、邮箱不能为空')
+        this.message.topWarning(this, '用户名、邮箱不能为空')
         callback(new Error(' '))
       }
       callback()
     }
-    var password = (rule, value, callback) => {
+    let password = (rule, value, callback) => {
       if (!value) {
-        this.message.topError(this, '密码不能为空')
+        this.message.topWarning(this, '密码不能为空')
         callback(new Error(' '))
       }
       callback()

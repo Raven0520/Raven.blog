@@ -21,11 +21,9 @@ export const login = (self, info) => {
     if (res.status === 'success') {
       const accessToken = res.data.token.access_token
       const refreshToken = res.data.token.refresh_token
+      const expireTime = res.data.token['expires_in']
       const token = {access_token: accessToken, refresh_token: refreshToken}
-      const loginInfo = {token: token}
-      const userInfo = JSON.stringify(loginInfo)
-      localStorage.setItem('token', token)
-      localStorage.setItem('userInfo', userInfo)
+      self.storage.set('token', token, expireTime)
       self.message.topSuccess(self, res.data.message)
       self.$router.push({path: '/index'})
     }
@@ -36,60 +34,46 @@ export const login = (self, info) => {
 }
 
 /**
- * 存储 token 值
- */
-export const userInfoToken = () => {
-  let userInfo = localStorage.getItem('userInfo')
-  if (userInfo !== null) {
-    return JSON.parse(userInfo)
-  } else {
-    userInfo = {token: null}
-    return userInfo
-  }
-}
-
-/**
- * api请求前的验证
- * @param self
- * @param params
- * @param curUrl
- * @returns {Promise}
- */
-export const apiHttp = (self, params, curUrl) => {
-  return new Promise((resolve, reject) => {
-    self.$http.post(url + curUrl, params, {emulateJSON: true}).then(resolve, reject)
-  })
-}
-
-/**
  * api请求
  * @param self  vue对应页面的this对象
  * @param params  传给api的参数
  * @param curUrl  浏览器路径
+ * @param dialog  判断是否需要开启弹窗
+ * @param show    判断是否显示成功信息
+ * @param load    判断是否关闭加载框
  * @returns {Promise}
  */
-export const apiPost = (self, params, curUrl, dialog) => {
-  params = apiBefore(params, self)
+export const apiPost = (self, params, curUrl, load, dialog, show) => {
+  apiBefore(self)
   self.$http.post(url + curUrl, params, {headers: header, emulateJSON: true}).then(function (res) {
-    if (dialog) {
-      self[dialog] = true
+    res = res.body
+    autoDialog(self, dialog)
+    autoLoading(load)
+    if (show !== false) {
+      self.message.topSuccess(self, res.data.message)
     }
-    autoLoading(self)
-    console.log(res)
+    self.result = res.data
   }, function (error) {
-    autoLoading(self)
-    responseError(self, error)
+    autoLoading(load)
+    if (error.body.code === 401) {
+      reLogin(self)
+    }
+    if (show !== false) {
+      responseError(self, error)
+    }
   })
 }
 
 /**
  * 判断是否需要关闭加载层
- * @param self
+ * @param load
  */
-export const autoLoading = (self) => {
-  if (self.loading.status) {
-    self.loading.status = false
-  }
+export const autoLoading = (load) => {
+  if (load) { load.close() }
+}
+
+export const autoDialog = (self, dialog) => {
+  if (dialog) { self[dialog.id] = dialog.action }
 }
 
 /**
@@ -129,34 +113,24 @@ export const responseValidate = (self, error) => {
   self.message.topError(self, errorMsg)
 }
 /**
- * TOKEN后的判断，api前的判断
- * @param params
+ * api前的判断，并且将Token添加到Header
  * @param self
  */
-export const apiBefore = (params, self) => {
-  tokenJudge(self)
-  return tokenInsert()
-}
-
-/**
- * TOKEN判断
- * @returns {boolean}
- */
-export const tokenJudge = (self) => {
-  let accessToken = userInfoToken().token.access_token
-  if (accessToken === undefined || accessToken === null || accessToken === '') {
-    fail(self, '您尚未登入请先登入')
-    return false
+export const apiBefore = (self) => {
+  let userInfo = self.storage.get('token')
+  if (!userInfo || userInfo === null) {
   } else {
-    return true
+    header.Authorization = 'Bearer' + ' ' + userInfo.access_token
   }
 }
 
-/**
- * header 写入 token 令牌
- */
-export const tokenInsert = () => {
-  header.Authorization = 'Bearer' + ' ' + userInfoToken().token.access_token
+export const reLogin = (self) => {
+  self.$alert('登录失效，请重新登录', '登录失效', {
+    confirmButtonText: '确定',
+    callback: action => {
+      loginPage(self)
+    }
+  })
 }
 
 /**
@@ -186,6 +160,7 @@ export const fail = (self, error) => {
 }
 
 export default {
+  apiBefore,
   login,
   apiPost,
   responseError,
