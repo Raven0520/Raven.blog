@@ -54,6 +54,14 @@ export const errorAlert = (self, message, title) => {
   })
 }
 
+export const notify = (self, message, title) => {
+  if (!title) title = 'Tips'
+  self.$notify({
+    title: title,
+    message: message
+  })
+}
+
 /**
  * 数据加载页面
  * @param self
@@ -78,5 +86,6 @@ export default {
   topSuccess,
   topWarning,
   errorAlert,
+  notify,
   load
 }

@@ -34,6 +34,19 @@ export const login = (self, info) => {
 }
 
 /**
+ * api请求前的验证
+ * @param self
+ * @param params
+ * @param curUrl
+ * @returns {Promise}
+ */
+export const apiHttp = (self, params, curUrl) => {
+  return new Promise((resolve, reject) => {
+    self.$http.post(url + curUrl, params, {headers: header, emulateJSON: true}).then(resolve, reject)
+  })
+}
+
+/**
  * api请求
  * @param self  vue对应页面的this对象
  * @param params  传给api的参数
@@ -45,15 +58,15 @@ export const login = (self, info) => {
  */
 export const apiPost = (self, params, curUrl, load, dialog, show) => {
   apiBefore(self)
-  self.$http.post(url + curUrl, params, {headers: header, emulateJSON: true}).then(function (res) {
+  return apiHttp(self, params, curUrl).then((res) => {
     res = res.body
     autoDialog(self, dialog)
     autoLoading(load)
     if (show !== false) {
       self.message.topSuccess(self, res.data.message)
     }
-    self.result = res.data
-  }, function (error) {
+    return success(res, self)
+  }).catch((error) => {
     autoLoading(load)
     if (error.body.code === 401) {
       reLogin(self)
