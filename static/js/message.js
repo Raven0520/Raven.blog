@@ -58,7 +58,8 @@ export const notify = (self, message, title) => {
   if (!title) title = 'Tips'
   self.$notify({
     title: title,
-    message: message
+    message: message,
+    showClose: false
   })
 }
 

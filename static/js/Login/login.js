@@ -19,8 +19,8 @@ export default {
     }
     return {
       form: {
-        name: '',
-        password: ''
+        name: 'raven',
+        password: '259695'
       },
       rule: {
         name: [

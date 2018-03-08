@@ -68,10 +68,7 @@ export const apiPost = (self, params, curUrl, load, dialog, show) => {
     return success(res, self)
   }).catch((error) => {
     autoLoading(load)
-    if (error.body.code === 401) {
-      reLogin(self)
-    }
-    if (show !== false) {
+    if (show !== false || error.status === 403) {
       responseError(self, error)
     }
   })
@@ -99,9 +96,23 @@ export const responseError = (self, error) => {
   let data = error.body
   if (error.status === 422) {
     responseValidate(self, data)
+  } else if (error.status === 403) {
+    responseScope(self)
   } else {
     responseFailed(self, data)
   }
+}
+
+/**
+ * 没有权限访问的错误
+ * @param self
+ */
+export const responseScope = (self) => {
+  self.message.topError(self, '您无权访问喔～！')
+  // if (self.$route.path !== '/') {
+  //   self.$store.commit('delete_tabs', self.$route.path)
+  // }
+  // self.$router.push({path: '/index'})
 }
 
 /**
@@ -130,10 +141,12 @@ export const responseValidate = (self, error) => {
  * @param self
  */
 export const apiBefore = (self) => {
-  let userInfo = self.storage.get('token')
-  if (!userInfo || userInfo === null) {
+  let token = self.storage.get('token')
+  if (!token || token === null) {
+    self.storage.clear()
+    return reLogin(self)
   } else {
-    header.Authorization = 'Bearer' + ' ' + userInfo.access_token
+    header.Authorization = 'Bearer' + ' ' + token.access_token
   }
 }
 
